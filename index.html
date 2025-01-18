@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lichttrager devOps</title>
+    <style>
+        @font-face {
+            font-family: 'Cyber';
+            src: url('https://assets.codepen.io/605876/Blender-Pro-Bold.otf');
+            font-display: swap;
+        }
+
+        body {
+            font-family: 'Cyber', 'Courier New', Courier, monospace;
+            background: radial-gradient(circle at center, #000000, #0c0c0c 70%);
+            color: #00ffcc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            filter: brightness(0.9) contrast(1.2);
+        }
+
+        #screen {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+            height: auto;
+            max-height: 90vh;
+            border-radius: 15px;
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.7), 0 0 50px rgba(0, 0, 0, 0.7);
+            background: linear-gradient(145deg, #000000, #111111);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: auto;
+        }
+
+        /* Custom scrollbar styles for WebKit browsers */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111111;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ffcc;
+            border-radius: 10px;
+            border: 2px solid #111111;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff0033;
+        }
+
+        /* Custom scrollbar styles for Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #00ffcc #111111;
+        }
+
+        #initialization-screen, #main-content {
+            text-align: center;
+            width: 100%;
+            overflow: auto; /* Ensure scrollbars are applied */
+        }
+
+        #loading-bar {
+            width: 80%;
+            height: 15px;
+            border: 2px solid #00ffcc;
+            margin: 10px auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 5px;
+        }
+
+        #progress {
+            width: 0;
+            height: 100%;
+            background-color: #00ffcc;
+            position: absolute;
+            animation: load 10s linear forwards;
+        }
+
+        @keyframes load {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        #status, #uid, #device-info {
+            margin-top: 10px;
+            font-size: 14px;
+            text-shadow: 0 0 5px #00ffcc;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #00ffcc;
+            margin-top: 10px;
+            overflow: auto; /* Ensure scrollbars are applied */
+        }
+
+        .bio {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #0c0c0c;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #00ffcc;
+            word-wrap: break-word;
+            overflow: auto; /* Ensure scrollbars are applied */
+        }
+
+        .social-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .social-buttons a {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 16px;
+            color: #000;
+            background: #00ffcc;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .social-buttons a:hover {
+            background: #ff0033;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                padding: 20px;
+            }
+
+            #screen {
+                width: 100%;
+                height: auto;
+                max-height: none;
+                padding: 5px;
+            }
+
+            #loading-bar {
+                width: 90%;
+            }
+
+            #status, #uid, #device-info {
+                font-size: 12px;
+            }
+
+            .container {
+                padding: 5px;
+            }
+
+            .bio {
+                padding: 5px;
+            }
+
+            .social-buttons a {
+                padding: 6px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #loading-bar {
+                width: 100%;
+            }
+
+            #status, #uid, #device-info {
+                font-size: 10px;
+            }
+
+            .container {
+                padding: 2px;
+            }
+
+            .bio {
+                padding: 2px;
+            }
+
+            .social-buttons a {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+        }
+
+        /* Glitch effect for IP address */
+        .glitch {
+            position: relative;
+            color: #00ffcc;
+            font-size: 14px;
+            text-shadow: 0 0 5px #00ffcc;
+            animation: glitch 1s infinite;
+        }
+
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            clip: rect(0, 900px, 0, 0);
+        }
+
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 red;
+            animation: glitch-before 1s infinite linear alternate-reverse;
+        }
+
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 blue;
+            animation: glitch-after 1s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch {
+            0% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-2px, 2px);
+            }
+            40% {
+                transform: translate(-2px, -2px);
+            }
+            60% {
+                transform: translate(2px, 2px);
+            }
+            80% {
+                transform: translate(2px, -2px);
+            }
+            100% {
+                transform: translate(0);
+            }
+        }
+
+        @keyframes glitch-before {
+            0% {
+                clip: rect(0, 900px, 0, 0);
+            }
+            20% {
+                clip: rect(0, 900px, 20px, 0);
+            }
+            40% {
+                clip: rect(0, 900px, 0, 0);
+            }
+            60% {
+                clip: rect(0, 900px, 20px, 0);
+            }
+            80% {
+                clip: rect(0, 900px, 0, 0);
+            }
+            100% {
+                clip: rect(0, 900px, 20px, 0);
+            }
+        }
+
+        @keyframes glitch-after {
+            0% {
+                clip: rect(0, 900px, 0, 0);
+            }
+            20% {
+                clip: rect(0, 900px, 20px, 0);
+            }
+            40% {
+                clip: rect(0, 900px, 0, 0);
+            }
+            60% {
+                clip: rect(0, 900px, 20px, 0);
+            }
+            80% {
+                clip: rect(0, 900px, 0, 0);
+            }
+            100% {
+                clip: rect(0, 900px, 20px, 0);
+            }
+        }
+
+        /* Additional styles for broken IP effect */
+        .broken-ip {
+            display: inline-block;
+            position: relative;
+            color: #00ffcc;
+            font-size: 14px;
+            text-shadow: 0 0 5px #00ffcc;
+            animation: broken 1s infinite;
+        }
+
+        .broken-ip span {
+            position: absolute;
+            animation: broken 1s infinite;
+        }
+
+        @keyframes broken {
+            0% {
+                transform: translate(0, 0);
+            }
+            20% {
+                transform: translate(-2px, 2px);
+            }
+            40% {
+                transform: translate(2px, -2px);
+            }
+            60% {
+                transform: translate(-2px, -2px);
+            }
+            80% {
+                transform: translate(2px, 2px);
+            }
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="screen">
+        <div id="initialization-screen">
+            <h1>Lichttrager devOps</h1>
+            <div id="uid">UID: Генерация...</div>
+            <div id="device-info">Информация об устройстве: Загрузка...</div>
+            <div id="loading-bar">
+                <div id="progress"></div>
+            </div>
+            <div id="status">Инициализация...</div>
+        </div>
+        <div id="main-content" style="display: none;">
+            <header>
+                <h1>Профиль терминала LichttragerOS</h1>
+            </header>
+            <div class="container">
+                <div class="bio">
+                    <h2>Обзор устройства:</h2>
+                    <p id="device-overview">Загрузка...</p>
+                </div>
+                <div class="bio">
+                    <h2>Вы подключены к терминалу Lichttrager devOps</h2>
+                    <p>
+                        Привет, добро пожаловать в этот скромный уголок просторов сети. Я Fullstack Developer из Казахстана. 
+                        С 14 лет занимаюсь программированием и достиг неплохих успехов в этой сфере.
+                    </p>
+                    <p>
+                        Среди проектов, над которыми я работал, можно отметить:
+                        <ul>
+                            <li>Qazaqtelecom - поддержка Telegram бота</li>
+                            <li>Onai - геолокационный сервис для транспорта</li>
+                        </ul>
+                        Также у меня были личные разработки:
+                        <ul>
+                            <li>MarsBot (Discord) - в настоящее время удален</li>
+                            <li>UnzipFileBot (Telegram) - был продан французу, судьба бота неизвестна</li>
+                        </ul>
+                        Контакты для связи со мной ниже.
+                    </p>
+                </div>
+                <div class="bio">
+                    <h2>Следите за мной</h2>
+                    <div class="social-buttons">
+                        <a href="https://www.youtube.com/@pyades54chetire" target="_blank">YouTube</a>
+                        <a href="https://vk.com/xlstwave" target="_blank">VK</a>
+                        <a href="https://github.com/lichttrager-devops" target="_blank">GitHub</a>
+                        <a href="https://t.me/responserequest" target="_blank">Telegram</a>
+                        <a href="https://t.me/ZDRAVYI_SMISLX" target="_blank">Telegram-канал</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const status = document.getElementById('status');
+        const uidElement = document.getElementById('uid');
+        const deviceInfoElement = document.getElementById('device-info');
+        const deviceOverview = document.getElementById('device-overview');
+        const mainContent = document.getElementById('main-content');
+        const initializationScreen = document.getElementById('initialization-screen');
+        const messages = [
+            'Отрисовываем детали...',
+            'Загружаем компоненты...',
+            'Инициализируем интерфейс...',
+            'Проверяем соединения...',
+            'Готовимся к запуску...',
+        ];
+        let index = 0;
+
+        const generateUID = () => {
+            return 'UID-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        };
+
+        const updateStatus = () => {
+            if (index < messages.length) {
+                status.textContent = messages[index++];
+                setTimeout(updateStatus, 2000);
+            } else {
+                status.textContent = 'Инициализация завершена';
+                initializationScreen.style.display = 'none';
+                mainContent.style.display = 'block';
+            }
+        };
+
+        const getDeviceInfo = () => {
+            const userAgent = navigator.userAgent;
+            const deviceInfo = `Устройство: ${/Mobile|tablet/i.test(userAgent) ? 'Мобильное устройство' : 'Настольный компьютер'}<br>ОС: ${navigator.platform}`;
+            deviceInfoElement.innerHTML = deviceInfo;
+        };
+
+        const getDeviceOverview = async () => {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                const ip = data.ip;
+                const browser = navigator.appName;
+                const version = navigator.appVersion;
+                const brokenIp = ip.split('').map(char => `<span>${char}</span>`).join('');
+                const deviceInfo = `<span class="broken-ip">${brokenIp}</span><br>Браузер: ${browser}<br>Версия браузера: ${version}<br>Разрешение экрана: ${screen.width}x${screen.height}<br>Глубина цвета: ${screen.colorDepth} бит`;
+                deviceOverview.innerHTML = deviceInfo;
+            } catch (error) {
+                console.error('Ошибка при получении информации об устройстве:', error);
+                deviceOverview.textContent = 'Не удалось получить информацию об устройстве';
+            }
+        };
+
+        window.onload = () => {
+            uidElement.textContent = 'UID: ' + generateUID();
+            getDeviceInfo();
+            getDeviceOverview();
+            setTimeout(updateStatus, 2000);
+        };
+    </script>
+</body>
+</html>
